@@ -33,19 +33,20 @@ valid_labs = train_labs[:10000]
 train_imgs = train_imgs[10000:]
 train_labs = train_labs[10000:]
 
-# Baseline setting: simple CNN + SGD, without weight decay, momentum, or LR scheduling.
+# Optimization experiment: simple CNN + momentum SGD + learning-rate scheduling.
 cnn_model = nn.models.Model_CNN(img_shape=(1, rows, cols), num_classes=train_labs.max() + 1)
-optimizer = nn.optimizer.SGD(init_lr=0.01, model=cnn_model)
+optimizer = nn.optimizer.MomentGD(init_lr=0.03, model=cnn_model, mu=0.9)
+scheduler = nn.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=[800, 2400, 4000], gamma=0.5)
 loss_fn = nn.op.MultiCrossEntropyLoss(model=cnn_model, max_classes=train_labs.max() + 1)
-runner = nn.runner.RunnerM(cnn_model, optimizer, nn.metric.accuracy, loss_fn, batch_size=32)
+runner = nn.runner.RunnerM(cnn_model, optimizer, nn.metric.accuracy, loss_fn, batch_size=32, scheduler=scheduler)
 
 runner.train(
     [train_imgs, train_labs],
     [valid_imgs, valid_labs],
-    num_epochs=5,
+    num_epochs=1,
     log_iters=100,
-    save_dir='./best_cnn_models',
-    checkpoint_dir='./saved_cnn_models',
+    save_dir='./best_cnn_models_optimized',
+    checkpoint_dir='./saved_cnn_models_optimized',
     checkpoint_interval=1000
 )
 
@@ -54,5 +55,5 @@ fig.set_tight_layout(1)
 plot(runner, axes)
 
 os.makedirs('./figs', exist_ok=True)
-fig.savefig('./figs/cnn_learning_curve.png', dpi=300)
+fig.savefig('./figs/cnn_learning_curve_optimized.png', dpi=300)
 plt.show()

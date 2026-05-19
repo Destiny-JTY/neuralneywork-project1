@@ -40,20 +40,21 @@ train_labs = train_labs[10000:]
 train_imgs = train_imgs / train_imgs.max()
 valid_imgs = valid_imgs / valid_imgs.max()
 
-# Baseline setting: plain MLP + SGD, without weight decay, momentum, or LR scheduling.
+# Optimization experiment: MLP + momentum SGD + learning-rate scheduling.
 linear_model = nn.models.Model_MLP([train_imgs.shape[-1], 600, 10], 'ReLU')
-optimizer = nn.optimizer.SGD(init_lr=0.01, model=linear_model)
+optimizer = nn.optimizer.MomentGD(init_lr=0.03, model=linear_model, mu=0.9)
+scheduler = nn.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=[800, 2400, 4000], gamma=0.5)
 loss_fn = nn.op.MultiCrossEntropyLoss(model=linear_model, max_classes=train_labs.max()+1)
 
-runner = nn.runner.RunnerM(linear_model, optimizer, nn.metric.accuracy, loss_fn)
+runner = nn.runner.RunnerM(linear_model, optimizer, nn.metric.accuracy, loss_fn, scheduler=scheduler)
 
 runner.train(
         [train_imgs, train_labs],
         [valid_imgs, valid_labs],
-        num_epochs=5,
+        num_epochs=1,
         log_iters=100,
-        save_dir='./best_models',
-        checkpoint_dir='./saved_models',
+        save_dir='./best_models_optimized',
+        checkpoint_dir='./saved_models_optimized',
         checkpoint_interval=1000
 )
 
@@ -63,5 +64,5 @@ fig.set_tight_layout(1)
 plot(runner, axes)
 
 os.makedirs('./figs', exist_ok=True)
-fig.savefig('./figs/learning_curve.png', dpi=300)
+fig.savefig('./figs/learning_curve_optimized.png', dpi=300)
 plt.show()
