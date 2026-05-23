@@ -7,24 +7,24 @@ __pycache__/
 venv/
 
 # Datasets
-#dataset/
-#*.gz
-#*.ubyte
+dataset/
+*.gz
+*.ubyte
 
 # Model weights and checkpoints
-#best_models/
-#saved_models/
-#best_cnn_models/
-#saved_cnn_models/
-#best_models_optimized/
-#saved_models_optimized/
-#best_cnn_models_optimized/
-#saved_cnn_models_optimized/
-#*.pickle
-#.pkl
-#*.pt
-#*.pth
-#*.ckpt
+best_models/
+saved_models/
+best_cnn_models/
+saved_cnn_models/
+best_models_optimized/
+saved_models_optimized/
+best_cnn_models_optimized/
+saved_cnn_models_optimized/
+*.pickle
+*.pkl
+*.pt
+*.pth
+*.ckpt
 
 # Generated figures and experiment outputs
 figs/
