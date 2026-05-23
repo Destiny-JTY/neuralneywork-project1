@@ -32,25 +32,23 @@ valid_labs = train_labs[:10000]
 train_imgs = train_imgs[10000:]
 train_labs = train_labs[10000:]
 
-# 优化实验：simple CNN + 基础 SGD (无动量 mu=0) + 学习率调度
-cnn_model = nn.models.Model_CNN(img_shape=(1, rows, cols), num_classes=train_labs.max() + 1)
+# Baseline + Dropout：simple CNN + 基础 SGD (无动量 mu=0)，不使用学习率调度
+cnn_model = nn.models.Model_CNN(img_shape=(1, rows, cols), num_classes=train_labs.max() + 1, dropout_prob=0.2)
 
 # 【改动点】将 mu 设为 0，关闭动量机制
 optimizer = nn.optimizer.MomentGD(init_lr=0.03, model=cnn_model, mu=0.0)
 
-scheduler = nn.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=[800, 2400, 4000], gamma=0.5)
 loss_fn = nn.op.MultiCrossEntropyLoss(model=cnn_model, max_classes=train_labs.max() + 1)
 
-# 重新恢复了 scheduler=scheduler 参数
-runner = nn.runner.RunnerM(cnn_model, optimizer, nn.metric.accuracy, loss_fn, batch_size=32, scheduler=scheduler)
+runner = nn.runner.RunnerM(cnn_model, optimizer, nn.metric.accuracy, loss_fn, batch_size=32)
 
 runner.train(
     [train_imgs, train_labs],
     [valid_imgs, valid_labs],
     num_epochs=1,
     log_iters=100,
-    save_dir='./best_cnn_models_optimized_lr',
-    checkpoint_dir='./saved_cnn_models_optimized_lr',
+    save_dir='./best_cnn_models_dropout',
+    checkpoint_dir='./saved_cnn_models_dropout',
     checkpoint_interval=1000
 )
 
@@ -59,5 +57,5 @@ fig.set_tight_layout(1)
 plot(runner, axes)
 
 os.makedirs('./figs', exist_ok=True)
-fig.savefig('./figs/cnn_learning_curve_optimized_lr.png', dpi=300)
+fig.savefig('./figs/cnn_learning_curve_dropout.png', dpi=300)
 plt.show()

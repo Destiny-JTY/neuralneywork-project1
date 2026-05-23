@@ -37,25 +37,23 @@ train_labs = train_labs[10000:]
 train_imgs = train_imgs / train_imgs.max()
 valid_imgs = valid_imgs / valid_imgs.max()
 
-# 优化实验：MLP + 基础 SGD (无动量 mu=0) + 学习率调度
-linear_model = nn.models.Model_MLP([train_imgs.shape[-1], 600, 10], 'ReLU')
+# Baseline + Dropout：MLP + 基础 SGD (无动量 mu=0)，不使用学习率调度
+linear_model = nn.models.Model_MLP([train_imgs.shape[-1], 600, 10], 'ReLU', dropout_prob=0.2)
 
 # 【改动点】将 mu 设为 0，让其退化为不带动量的纯 SGD 优化器
 optimizer = nn.optimizer.MomentGD(init_lr=0.03, model=linear_model, mu=0.0) 
 
-scheduler = nn.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=[800, 2400, 4000], gamma=0.5)
 loss_fn = nn.op.MultiCrossEntropyLoss(model=linear_model, max_classes=train_labs.max()+1)
 
-# 重新把 scheduler 传进去
-runner = nn.runner.RunnerM(linear_model, optimizer, nn.metric.accuracy, loss_fn, scheduler=scheduler)
+runner = nn.runner.RunnerM(linear_model, optimizer, nn.metric.accuracy, loss_fn)
 
 runner.train(
     [train_imgs, train_labs],
     [valid_imgs, valid_labs],
     num_epochs=1,
     log_iters=100,
-    save_dir='./best_models_optimized_lr',
-    checkpoint_dir='./saved_models_optimized_lr',
+    save_dir='./best_models_dropout',
+    checkpoint_dir='./saved_models_dropout',
     checkpoint_interval=1000
 )
 
@@ -64,5 +62,5 @@ fig.set_tight_layout(1)
 plot(runner, axes)
 
 os.makedirs('./figs', exist_ok=True)
-fig.savefig('./figs/learning_curve_optimized_lr.png', dpi=300)
+fig.savefig('./figs/learning_curve_dropout.png', dpi=300)
 plt.show()
