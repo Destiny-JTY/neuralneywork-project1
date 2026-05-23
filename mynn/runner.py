@@ -46,6 +46,8 @@ class RunnerM():
             y = y[idx]
 
             for iteration, start in enumerate(range(0, X.shape[0], self.batch_size)):
+                if hasattr(self.model, 'set_train'):
+                    self.model.set_train(True)
                 train_X = X[start : start + self.batch_size]
                 train_y = y[start : start + self.batch_size]
 
@@ -85,6 +87,8 @@ class RunnerM():
         self.best_score = best_score
 
     def evaluate(self, data_set):
+        if hasattr(self.model, 'set_train'):
+            self.model.set_train(False)
         X, y = data_set
         logits = self.model(X)
         loss = self.loss_fn(logits, y)
